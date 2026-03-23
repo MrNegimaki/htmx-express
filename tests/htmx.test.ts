@@ -163,6 +163,68 @@ describe("htmx middleware", () => {
     });
   });
 
+  describe("middleware augments req and res", () => {
+    it("req.htmx is undefined without middleware", async () => {
+      const app = express();
+      app.get("/", (req, res) => {
+        res.json({ hasHtmx: req.htmx !== undefined });
+      });
+
+      const res = await request(app).get("/");
+      expect(res.body.hasHtmx).toBe(false);
+    });
+
+    it("res.htmx is undefined without middleware", async () => {
+      const app = express();
+      app.get("/", (_req, res) => {
+        res.json({ hasHtmx: (res as any).htmx !== undefined });
+      });
+
+      const res = await request(app).get("/");
+      expect(res.body.hasHtmx).toBe(false);
+    });
+
+    it("req.htmx is defined after middleware is applied", async () => {
+      const app = createApp();
+      app.get("/", (req, res) => {
+        res.json({ hasHtmx: req.htmx !== undefined });
+      });
+
+      const res = await request(app).get("/");
+      expect(res.body.hasHtmx).toBe(true);
+    });
+
+    it("res.htmx is defined after middleware is applied", async () => {
+      const app = createApp();
+      app.get("/", (_req, res) => {
+        res.json({ hasHtmx: res.htmx !== undefined });
+      });
+
+      const res = await request(app).get("/");
+      expect(res.body.hasHtmx).toBe(true);
+    });
+
+    it("req.isHtmxRequest is defined after middleware is applied", async () => {
+      const app = createApp();
+      app.get("/", (req, res) => {
+        res.json({ hasProp: req.isHtmxRequest !== undefined });
+      });
+
+      const res = await request(app).get("/");
+      expect(res.body.hasProp).toBe(true);
+    });
+
+    it("res.renderHtmx is defined after middleware is applied", async () => {
+      const app = createApp();
+      app.get("/", (_req, res) => {
+        res.json({ hasProp: typeof res.renderHtmx === "function" });
+      });
+
+      const res = await request(app).get("/");
+      expect(res.body.hasProp).toBe(true);
+    });
+  });
+
   describe("renderHtmx", () => {
     it("renders partial for HTMX requests", async () => {
       const app = createApp();
